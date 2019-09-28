@@ -31,6 +31,8 @@ device = torch.device("cpu")
 model = torch.load("./model3.h5", map_location=device)
 model.eval()
 
+dangerconds = []
+
 
 def transform_image(image_bytes):
     my_transforms = transforms.Compose(
@@ -58,6 +60,11 @@ def get_prediction(image_bytes):
         result = "Danger"
 
     print(result)
+    if result == "Danger":
+        dangerconds.append(1)
+    else:
+        dangerconds.clear()
+
     return result
     # return imagenet_class_index[predicted_idx]
 
@@ -79,19 +86,27 @@ def predimg():
         return jsonify({"class_name": class_name})
 
 
+@app.route("/check")
+def check():
+    if dangerconds.count > 3:
+        return True
+    else:
+        return False
+
+
 @app.route("/test")
 def hello():
 
     # Your api-key can be gotten from:  https://console.firebase.google.com/project/sosclick/settings/cloudmessaging
 
-    registration_id = "cHmvVSrhyaw:APA91bFmKwjvYyzugixggC2NWQTGdbbwz_XyOO-8Zcws4xfYPRvbTQRqKdyYBzKwOg8E9qIkBpauzEjYrilC9qKbec7FzU4_3PaM0uL8IsuoZrMXJ6dCmY3qxx04wLKK_g8-nqTu3U0P"
-    message_title = "Uber update"
-    message_body = "Hi john, your customized news for today is ready"
-    result = push_service.notify_single_device(
-        registration_id=registration_id,
-        message_title=message_title,
-        message_body=message_body,
-    )
+    # registration_id = "cHmvVSrhyaw:APA91bFmKwjvYyzugixggC2NWQTGdbbwz_XyOO-8Zcws4xfYPRvbTQRqKdyYBzKwOg8E9qIkBpauzEjYrilC9qKbec7FzU4_3PaM0uL8IsuoZrMXJ6dCmY3qxx04wLKK_g8-nqTu3U0P"
+    # message_title = "Uber update"
+    # message_body = "Hi john, your customized news for today is ready"
+    # result = push_service.notify_single_device(
+    #     registration_id=registration_id,
+    #     message_title=message_title,
+    #     message_body=message_body,
+    # )
 
     print(result)
 

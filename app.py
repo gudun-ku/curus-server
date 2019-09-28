@@ -10,7 +10,7 @@ from PIL import Image
 from flask import Flask, jsonify, request
 
 app = Flask(__name__)
-imagenet_class_index = json.load(open("./imagenet_class_index.json"))
+
 device = torch.device("cpu")
 model = torch.load("./model3.h5", map_location=device)
 model.eval()

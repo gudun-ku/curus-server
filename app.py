@@ -9,6 +9,22 @@ import torchvision.transforms as transforms
 from PIL import Image
 from flask import Flask, jsonify, request
 
+# from pyfcm import FCMNotification
+
+
+# push_service = FCMNotification(
+#     api_key="AAAAicLngtE:APA91bEMDXGcE5suWeWd5JD1fJY1S2MJHdXMZYl4tbCCiHGfE5nvriAO05svXCJ4rBMd2aaDjtTfv5o0D9lrDfl9e2gKEIK_DbNKeCchESJ8Hk7Uj3FoxXvMa5_HOGAnrX7x60KvoMJ0"
+# )
+
+# # OR initialize with proxies
+
+# proxy_dict = {"http": "http://127.0.0.1", "https": "http://127.0.0.1"}
+# push_service = FCMNotification(
+#     api_key="AAAAicLngtE:APA91bEMDXGcE5suWeWd5JD1fJY1S2MJHdXMZYl4tbCCiHGfE5nvriAO05svXCJ4rBMd2aaDjtTfv5o0D9lrDfl9e2gKEIK_DbNKeCchESJ8Hk7Uj3FoxXvMa5_HOGAnrX7x60KvoMJ0",
+#     proxy_dict=proxy_dict,
+# )
+
+
 app = Flask(__name__)
 
 device = torch.device("cpu")
@@ -37,11 +53,12 @@ def get_prediction(image_bytes):
     gprob, pred = outputs.max(1)
     prob = gprob.clone()
     nnprob = prob.detach().numpy()[0]
-
+    result = "Normal"
     if nnprob > 0.5:
-        return "Danger"
-    else:
-        return "Normal"
+        result = "Danger"
+
+    print(result)
+    return result
     # return imagenet_class_index[predicted_idx]
 
 
@@ -64,6 +81,20 @@ def predimg():
 
 @app.route("/test")
 def hello():
+
+    # Your api-key can be gotten from:  https://console.firebase.google.com/project/sosclick/settings/cloudmessaging
+
+    registration_id = "cHmvVSrhyaw:APA91bFmKwjvYyzugixggC2NWQTGdbbwz_XyOO-8Zcws4xfYPRvbTQRqKdyYBzKwOg8E9qIkBpauzEjYrilC9qKbec7FzU4_3PaM0uL8IsuoZrMXJ6dCmY3qxx04wLKK_g8-nqTu3U0P"
+    message_title = "Uber update"
+    message_body = "Hi john, your customized news for today is ready"
+    result = push_service.notify_single_device(
+        registration_id=registration_id,
+        message_title=message_title,
+        message_body=message_body,
+    )
+
+    print(result)
+
     return "test passed!"
 
 

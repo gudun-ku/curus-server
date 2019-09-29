@@ -29,7 +29,7 @@ app = Flask(__name__)
 
 device = torch.device("cpu")
 model = torch.load("./model3.h5", map_location=device)
-model.eval()
+# model.eval()
 
 dangerconds = []
 
@@ -37,8 +37,7 @@ dangerconds = []
 def transform_image(image_bytes):
     my_transforms = transforms.Compose(
         [
-            transforms.Resize(255),
-            transforms.CenterCrop(224),
+            transforms.Resize((224, 224)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]
@@ -51,12 +50,13 @@ def get_prediction(image_bytes):
     tensor = transform_image(image_bytes=image_bytes)
 
     outputs = model.forward(tensor)
-    model.eval()
+    # model.eval()
     gprob, pred = outputs.max(1)
     prob = gprob.clone()
     nnprob = prob.detach().numpy()[0]
+    print(nnprob)
     result = "Normal"
-    if nnprob > 0.5:
+    if nnprob > 0.5 or nnprob < -0.25:
         result = "Danger"
 
     print(result)
@@ -88,14 +88,15 @@ def predimg():
 
 @app.route("/check")
 def check():
-    if dangerconds.count > 3:
-        return True
-    else:
-        return False
+    class_name = "Normal"
+    if len(dangerconds) > 3:
+        class_name = "Danger"
+
+    return jsonify({"class_name": class_name})
 
 
 @app.route("/test")
-def hello():
+def test():
 
     # Your api-key can be gotten from:  https://console.firebase.google.com/project/sosclick/settings/cloudmessaging
 
@@ -107,10 +108,9 @@ def hello():
     #     message_title=message_title,
     #     message_body=message_body,
     # )
+    # print(result)
 
-    print(result)
-
-    return "test passed!"
+    return "OK"
 
 
 if __name__ == "__main__":

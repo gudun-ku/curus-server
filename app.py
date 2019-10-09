@@ -48,9 +48,11 @@ def transform_image(image_bytes):
 
 def get_prediction(image_bytes):
     tensor = transform_image(image_bytes=image_bytes)
-
+    
     outputs = model.forward(tensor)
     # model.eval()
+
+	
     gprob, pred = outputs.max(1)
     prob = gprob.clone()
     nnprob = prob.detach().numpy()[0]
@@ -68,6 +70,32 @@ def get_prediction(image_bytes):
     return result
     # return imagenet_class_index[predicted_idx]
 
+def get_prediction_2(image_bytes):
+    tensor = transform_image(image_bytes=image_bytes)
+
+    #outputs = model.forward(tensor)
+    # model.eval()
+
+    with torch.set_grad_enabled(False):
+        preds = model(tensor)  
+   
+    nnprob = torch.nn.functional.softmax(preds, dim=1)[:,1].data.cpu().numpy()    
+	
+    print(nnprob)
+    result = "Normal"
+    if nnprob >= 0.5:
+        result = "Danger"
+
+    print(result)
+    if result == "Danger":
+        dangerconds.append(1)
+    else:
+        dangerconds.clear()
+
+    return result
+    # return imagenet_class_index[predicted_idx]
+
+
 
 @app.route("/predimg", methods=["POST"])
 def predimg():
@@ -82,7 +110,7 @@ def predimg():
         im = Image.open(img_bytes)
         # im.save("./image.jpg")
         # return jsonify("OK")
-        class_name = get_prediction(image_bytes=base64.b64decode(image_data))
+        class_name = get_prediction_2(image_bytes=base64.b64decode(image_data))
         return jsonify({"class_name": class_name})
 
 
@@ -114,4 +142,4 @@ def test():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="192.168.107.170",port=8898)
